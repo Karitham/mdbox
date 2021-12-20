@@ -20,17 +20,20 @@ type mvParams struct {
 var mdImageReg = regexp.MustCompile(`(?:\[(?P<text>.*?)\])\((?P<link>.*?)\)`)
 
 func mv(p mvParams) error {
-	filepath.WalkDir(p.pwd, func(path string, d fs.DirEntry, err error) error {
+	p.src = cleanRelPath(p.pwd, p.src)
+	p.dst = cleanRelPath(p.pwd, p.dst)
+
+	filepath.WalkDir(p.pwd, func(fpath string, d fs.DirEntry, err error) error {
 		if err != nil {
 			log.Println(err)
 			return nil
 		}
 		// early exit
-		if d.IsDir() || !elems(filepath.Ext(path), p.fileExts) {
+		if d.IsDir() || !elems(filepath.Ext(fpath), p.fileExts) {
 			return nil
 		}
 
-		f, err := os.OpenFile(path, os.O_RDWR, d.Type())
+		f, err := os.OpenFile(fpath, os.O_RDWR, d.Type())
 		if err != nil {
 			log.Println(err)
 			return nil
